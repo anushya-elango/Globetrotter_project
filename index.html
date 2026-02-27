@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌍 Globetrotter - Travel Booking</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; }
+        .hidden { display: none !important; }
+        
+        /* Navbar */
+        .navbar { 
+            background: rgba(255,255,255,0.95); 
+            backdrop-filter: blur(10px); 
+            padding: 1rem 0; 
+            position: fixed; 
+            width: 100%; 
+            top: 0; 
+            z-index: 1000; 
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        .nav-container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 2rem; 
+        }
+        .logo { 
+            font-size: 28px; 
+            font-weight: bold; 
+            background: linear-gradient(45deg, #1ab1f0, #00d4ff); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        .nav-links { display: flex; list-style: none; gap: 2rem; }
+        .nav-links a { text-decoration: none; color: #333; font-weight: 500; cursor: pointer; }
+        .nav-links a:hover { color: #1ab1f0; }
+        .auth-buttons, .user-menu { display: flex; gap: 1rem; align-items: center; }
+        .btn { padding: 0.7rem 1.5rem; border: none; border-radius: 25px; cursor: pointer; font-weight: 500; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(45deg, #1ab1f0, #00d4ff); color: white; }
+        .btn-secondary { background: transparent; color: #1ab1f0; border: 2px solid #1ab1f0; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(26,177,240,0.4); }
+        .user-profile { background: linear-gradient(45deg, #1ab1f0, #00d4ff); color: white; border-radius: 50px; padding: 10px 20px; font-weight: 600; cursor: pointer; }
+
+        /* Modal */
+        .modal { position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); }
+        .modal-content { background: white; margin: 10% auto; padding: 0; border-radius: 20px; width: 90%; max-width: 450px; max-height: 80vh; overflow-y: auto; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; padding: 15px; cursor: pointer; }
+        .close:hover { color: #1ab1f0; }
+        .form-tabs { display: flex; background: #f8f9fa; border-radius: 20px 20px 0 0; overflow: hidden; }
+        .form-tab { flex: 1; padding: 20px; text-align: center; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .form-tab.active { background: linear-gradient(45deg, #1ab1f0, #00d4ff); color: white; }
+        .form-container { padding: 30px; }
+        .input-group input { width: 100%; padding: 15px 15px 15px 45px; border: 2px solid #e9ecef; border-radius: 12px; font-size: 16px; transition: all 0.3s; }
+        .input-group input:focus { outline: none; border-color: #1ab1f0; box-shadow: 0 0 0 3px rgba(26,177,240,0.1); }
+        .form-btn { width: 100%; padding: 15px; background: linear-gradient(45deg, #1ab1f0, #00d4ff); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .form-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(26,177,240,0.4); }
+
+        /* Pages - FIXED HEIGHT & VISIBILITY */
+        .page { min-height: 100vh; padding-top: 100px; position: relative; }
+        .page.active { display: block !important; }
+        .page-container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; min-height: calc(100vh - 100px); }
+        
+        /* Home Page */
+        .hero-section { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            text-align: center; 
+            padding: 8rem 2rem; 
+            border-radius: 25px; 
+            margin: 2rem 0; 
+        }
+        
+        /* Dashboard */
+        .dashboard-container { 
+            background: rgba(255,255,255,0.95); 
+            backdrop-filter: blur(20px); 
+            padding: 5rem 3rem; 
+            border-radius: 30px; 
+            box-shadow: 0 30px 80px rgba(0,0,0,0.15); 
+            margin: 3rem auto; 
+            text-align: center; 
+            max-width: 900px;
+            position: relative;
+            z-index: 10;
+        }
+        .welcome-title { 
+            color: #1ab1f0; 
+            font-size: 3.5rem; 
+            font-weight: 800; 
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 10px rgba(26,177,240,0.3);
+        }
+        .welcome-subtitle { 
+            color: #666; 
+            font-size: 1.5rem; 
+            margin-bottom: 4rem; 
+            font-weight: 400;
+        }
+        .search-section { max-width: 800px; margin: 0 auto; }
+        .search-row { 
+            display: flex; 
+            gap: 2rem; 
+            margin-bottom: 3rem; 
+            background: white;
+            padding: 1rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        .search-row input { 
+            flex: 1; 
+            padding: 2rem 2rem 2rem 5rem; 
+            border: 3px solid #e9ecef; 
+            border-radius: 20px; 
+            font-size: 20px; 
+            background: #f8f9fa;
+            font-weight: 500;
+        }
+        .search-row input:focus { 
+            outline: none; 
+            border-color: #1ab1f0; 
+            box-shadow: 0 0 0 4px rgba(26,177,240,0.2); 
+            background: white;
+        }
+        .search-row input[readonly] { background: linear-gradient(135deg, #f0f8ff, #e6f3ff); color: #1ab1f0; }
+        .search-btn { 
+            background: linear-gradient(45deg, #1ab1f0, #00d4ff); 
+            color: white; 
+            border: none; 
+            padding: 2rem 4rem; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            font-size: 22px; 
+            font-weight: 800; 
+            transition: all 0.4s; 
+            box-shadow: 0 15px 40px rgba(26,177,240,0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .search-btn:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 25px 60px rgba(26,177,240,0.5); 
+        }
+
+        /* Flights Page */
+        .flights-container { padding: 5rem 0; text-align: center; }
+        .flights-title { color: #1ab1f0; font-size: 3.5rem; margin-bottom: 4rem; }
+        .flights-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); 
+            gap: 3rem; 
+            margin: 4rem 0; 
+        }
+        .flight-card { 
+            background: white; 
+            border-radius: 30px; 
+            overflow: hidden; 
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15); 
+            transition: all 0.4s; 
+            cursor: pointer;
+            border: 4px solid transparent;
+        }
+        .flight-card:hover { 
+            transform: translateY(-20px) scale(1.02); 
+            box-shadow: 0 35px 100px rgba(0,0,0,0.25); 
+            border-color: #1ab1f0;
+        }
+        .flight-img { width: 100%; height: 250px; object-fit: cover; }
+        .flight-details { padding: 3rem; }
+        .flight-time { font-size: 2.5rem; font-weight: bold; color: #1ab1f0; margin-bottom: 1rem; }
+        .flight-airline { font-size: 1.6rem; color: #333; margin-bottom: 1rem; font-weight: 700; }
+        .flight-route { color: #666; margin-bottom: 2rem; font-size: 1.2rem; }
+        .flight-price { font-size: 3rem; font-weight: bold; color: #28a745; }
+
+        /* Flight Details */
+        .details-container { padding: 4rem 0; }
+        .flight-title { text-align: center; color: #28a745; font-size: 3rem; margin-bottom: 4rem; }
+        .split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-bottom: 4rem; }
+        .tourist-panel, .cost-panel { 
+            background: rgba(255,255,255,0.95); 
+            border-radius: 30px; 
+            padding: 4rem; 
+            box-shadow: 0 25px 80px rgba(0,0,0,0.15); 
+            height: 80vh; 
+            overflow-y: auto;
+        }
+        .panel-title { font-size: 2.5rem; color: #1ab1f0; margin-bottom: 3rem; text-align: center; }
+        .tourist-item { 
+            display: flex; 
+            gap: 2rem; 
+            margin-bottom: 2.5rem; 
+            padding: 2.5rem; 
+            background: white; 
+            border-radius: 25px; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1); 
+            transition: transform 0.3s;
+        }
+        .tourist-item:hover { transform: translateY(-10px); }
+        .tourist-img { width: 140px; height: 140px; object-fit: cover; border-radius: 20px; }
+        .tourist-info h4 { color: #333; margin-bottom: 1.2rem; font-size: 1.8rem; }
+        .tourist-info p { color: #666; margin-bottom: 1rem; font-size: 1.2rem; }
+        .tourist-info a { color: #1ab1f0; text-decoration: none; font-weight: 700; font-size: 1.2rem; }
+        .cost-item { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 2.5rem; 
+            background: white; 
+            margin-bottom: 2rem; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            align-items: center;
+        }
+        .cost-label { font-weight: 700; color: #333; font-size: 1.4rem; }
+        .cost-price { font-weight: bold; color: #28a745; font-size: 1.8rem; }
+
+        .total-section { 
+            background: linear-gradient(45deg, #28a745, #20c997); 
+            color: white; 
+            padding: 5rem; 
+            border-radius: 40px; 
+            text-align: center; 
+            box-shadow: 0 40px 100px rgba(40,167,69,0.4); 
+            margin-bottom: 4rem;
+        }
+        .total-price { font-size: 4rem; font-weight: 900; margin-bottom: 2rem; }
+        .book-btn { 
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24); 
+            color: white; 
+            border: none; 
+            padding: 2.5rem 5rem; 
+            border-radius: 40px; 
+            font-size: 24px; 
+            font-weight: 900; 
+            cursor: pointer; 
+            width: 100%; 
+            transition: all 0.4s; 
+        }
+        .book-btn:hover { transform: scale(1.08); box-shadow: 0 30px 80px rgba(255,107,107,0.5); }
+        .back-btn { 
+            background: linear-gradient(45deg, #1ab1f0, #00d4ff); 
+            color: white; 
+            border: none; 
+            padding: 1.5rem 3rem; 
+            border-radius: 30px; 
+            font-size: 20px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            display: block; 
+            margin: 0 auto; 
+        }
+
+        /* NEW: Booking Success Modal */
+        .success-modal {
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .success-content {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 4rem 3rem;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 30px 100px rgba(40,167,69,0.5);
+            animation: successBounce 0.6s ease-out;
+            transform: scale(0);
+            transform-origin: center;
+        }
+        .success-content.show {
+            transform: scale(1);
+        }
+        @keyframes successBounce {
+            0% { transform: scale(0) rotate(-5deg); opacity: 0; }
+            50% { transform: scale(1.1) rotate(2deg); opacity: 0.8; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .success-icon { font-size: 6rem; margin-bottom: 2rem; animation: bounce 1s infinite; }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        .success-title { font-size: 3rem; font-weight: 900; margin-bottom: 1.5rem; }
+        .success-details { font-size: 1.4rem; margin-bottom: 2rem; line-height: 1.6; }
+        .success-email { background: rgba(255,255,255,0.2); padding: 1rem 2rem; border-radius: 20px; font-size: 1.3rem; font-weight: 600; }
+        .close-success { 
+            background: rgba(255,255,255,0.3); 
+            color: white; 
+            border: none; 
+            padding: 1rem 3rem; 
+            border-radius: 25px; 
+            font-size: 18px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            margin-top: 2rem;
+            transition: all 0.3s;
+        }
+        .close-success:hover { background: rgba(255,255,255,0.5); transform: scale(1.05); }
+
+        @media (max-width: 768px) { 
+            .search-row, .split-layout { grid-template-columns: 1fr; }
+            .tourist-panel, .cost-panel { height: auto; margin-bottom: 2rem; }
+            .welcome-title { font-size: 2.5rem; }
+            .flights-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="form-tabs">
+                <div class="form-tab active" onclick="switchForm('login')">Login</div>
+                <div class="form-tab" onclick="switchForm('register')">Register</div>
+            </div>
+            <div class="form-container" id="loginForm">
+                <div class="input-group"><input type="email" id="loginEmail" placeholder="📧 Email" required></div>
+                <div class="input-group"><input type="password" id="loginPassword" placeholder="🔒 Password" required></div>
+                <button class="form-btn" onclick="loginUser()">Login Now</button>
+            </div>
+            <div class="form-container hidden" id="registerForm">
+                <div class="input-group"><input type="email" id="regEmail" placeholder="📧 Email" required></div>
+                <div class="input-group"><input type="password" id="regPassword" placeholder="🔒 Create Password (6+ chars)" required></div>
+                <button class="form-btn" onclick="registerUser()">Register Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Booking Success Modal -->
+    <div id="successModal" class="success-modal hidden">
+        <div class="success-content">
+            <div class="success-icon">🎉</div>
+            <div class="success-title">PACKAGE BOOKED SUCCESSFULLY!</div>
+            <div class="success-details">
+                Your Paris trip is confirmed! ✈️🗼
+            </div>
+            <div class="success-email" id="bookingEmail">traveler@example.com</div>
+            <div style="font-size: 1.2rem; margin-top: 1rem;">
+                <strong>Flight:</strong> <span id="bookingFlight"></span><br>
+                <strong>Total:</strong> <span id="bookingTotal"></span>
+            </div>
+            <button class="close-success" onclick="closeSuccessModal()">✨ Continue Shopping</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">🌍 Globetrotter</div>
+            <ul class="nav-links">
+                <li><a onclick="showPage('home')">🏠 Home</a></li>
+            </ul>
+            <div class="auth-buttons" id="authButtons">
+                <button class="btn btn-secondary" onclick="openModal()">Login</button>
+                <button class="btn btn-primary" onclick="openModal()">Register</button>
+            </div>
+            <div class="user-menu hidden" id="userMenu">
+                <div class="user-profile" onclick="showPage('dashboard')">Hi, <span id="userName">Traveler</span> 👋</div>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Page -->
+    <section class="page active" id="home">
+        <div class="page-container">
+            <div class="hero-section">
+                <h1 style="font-size: 4rem; margin-bottom: 2rem;">🌍 Plan Your Dream Trip!</h1>
+                <p style="font-size: 1.6rem;">Login to search flights to Paris & more!</p>
+                <button class="search-btn" style="width: 350px; font-size: 22px; margin-top: 3rem; padding: 1.5rem 3rem;" onclick="openModal()">🚀 Login to Start</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section class="page hidden" id="dashboard">
+        <div class="page-container">
+            <div class="dashboard-container">
+                <h1 class="welcome-title">✈️ Welcome Back!</h1>
+                <p class="welcome-subtitle">Search flights from Vijayawada to your dream destination</p>
+                
+                <div class="search-section">
+                    <div class="search-row">
+                        <input type="text" id="searchFrom" placeholder="From: Vijayawada (VGA)" value="Vijayawada (VGA)" readonly>
+                        <input type="text" id="searchTo" placeholder="To: Paris, London, Dubai...">
+                    </div>
+                    <button class="search-btn" onclick="searchFlights()">🔍 Search Flights</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Flights Page -->
+    <section class="page hidden" id="flights">
+        <div class="page-container">
+            <div class="flights-container">
+                <h1 class="flights-title">✈️ Available Flights (Vijayawada → Paris)</h1>
+                <div class="flights-grid" id="flightsGrid"></div>
+                <button class="back-btn" onclick="showPage('dashboard')">← Back to Dashboard</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Flight Details Page -->
+    <section class="page hidden" id="flightDetails">
+        <div class="page-container">
+            <div class="details-container">
+                <h1 id="flightTitle" class="flight-title"></h1>
+                
+                <div class="split-layout">
+                    <div class="tourist-panel">
+                        <h2 class="panel-title">🗼 Paris Tourist Attractions</h2>
+                        <div class="tourist-item">
+                            <img class="tourist-img" src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&auto=format&fit=crop&w=140&q=80" alt="Eiffel Tower">
+                            <div class="tourist-info">
+                                <h4>🗼 Eiffel Tower</h4>
+                                <p>Iconic 330m iron lattice tower built in 1889</p>
+                                <p>Best time: Evening when it sparkles!</p>
+                                <a href="https://www.google.com/search?q=Eiffel+Tower" target="_blank">View on Google →</a>
+                            </div>
+                        </div>
+                        <div class="tourist-item">
+                            <img class="tourist-img" src="https://images.unsplash.com/photo-1523861401636-8d3fb90fe99e?ixlib=rb-4.0.3&auto=format&fit=crop&w=140&q=80" alt="Louvre">
+                            <div class="tourist-info">
+                                <h4>🎨 Louvre Museum</h4>
+                                <p>Home to the Mona Lisa & Venus de Milo</p>
+                                <p>World's largest art collection</p>
+                                <a href="https://www.google.com/search?q=Louvre+Museum" target="_blank">View on Google →</a>
+                            </div>
+                        </div>
+                        <div class="tourist-item">
+                            <img class="tourist-img" src="https://images.unsplash.com/photo-1552566626-52f8b828add9?ixlib=rb-4.0.3&auto=format&fit=crop&w=140&q=80" alt="Arc">
+                            <div class="tourist-info">
+                                <h4>🏛️ Arc de Triomphe</h4>
+                                <p>Monument honoring French Revolution</p>
+                                <p>360° panoramic views from the top</p>
+                                <a href="https://www.google.com/search?q=Arc+de+Triomphe" target="_blank">View on Google →</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cost-panel">
+                        <h2 class="panel-title">💰 Complete Package Costs</h2>
+                        <div class="cost-item">
+                            <span class="cost-label">✈️ Round Trip Flight</span>
+                            <span class="cost-price" id="flightCost">₹45,999</span>
+                        </div>
+                        <div class="cost-item">
+                            <span class="cost-label">🛏️ 5-Star Hotel (5 Nights)</span>
+                            <span class="cost-price">₹1,29,995</span>
+                        </div>
+                        <div class="cost-item">
+                            <span class="cost-label">🍽️ Eiffel Tower Dinner Cruise</span>
+                            <span class="cost-price">₹15,999</span>
+                        </div>
+                        <div class="cost-item">
+                            <span class="cost-label">🍴 French Meals (5 Days)</span>
+                            <span class="cost-price">₹24,999</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="total-section">
+                    <div class="total-price" id="totalPrice">₹2,16,992</div>
+                    <small style="font-size: 1.4rem;">Flight + 5★ Luxury Hotel + Eiffel Dinner + Daily Gourmet Meals</small>
+                    <br><br>
+                    <button class="book-btn" onclick="confirmBooking()">✅ Book Complete Package Now</button>
+                </div>
+                <button class="back-btn" onclick="showPage('flights')">← Back to Flights</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        let currentUser = null;
+        let selectedFlight = null;
+
+        // BULLETPROOF PAGE SWITCHING
+        function showPage(pageId) {
+            const allPages = document.querySelectorAll('.page');
+            allPages.forEach(page => {
+                page.style.display = 'none';
+                page.classList.remove('active');
+            });
+            
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.style.display = 'block';
+                targetPage.classList.add('active');
+            }
+        }
+
+        function openModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('loginModal').classList.add('hidden'); }
+        
+        function switchForm(type) {
+            document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[onclick="switchForm('${type}')"]`).classList.add('active');
+            document.getElementById('loginForm').classList.toggle('hidden', type !== 'login');
+            document.getElementById('registerForm').classList.toggle('hidden', type !== 'register');
+        }
+
+        function loginUser() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (email && password) {
+                currentUser = { email, name: email.split('@')[0] };
+                document.getElementById('userName').textContent = currentUser.name;
+                document.getElementById('authButtons').style.display = 'none';
+                document.getElementById('userMenu').style.display = 'flex';
+                closeModal();
+                setTimeout(() => {
+                    showPage('dashboard');
+                    window.scrollTo(0, 0);
+                }, 100);
+            } else {
+                alert('❌ Please enter email & password');
+            }
+        }
+
+        function registerUser() {
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            if (email && password.length >= 6) {
+                currentUser = { email, name: email.split('@')[0] };
+                document.getElementById('userName').textContent = currentUser.name;
+                document.getElementById('authButtons').style.display = 'none';
+                document.getElementById('userMenu').style.display = 'flex';
+                closeModal();
+                setTimeout(() => showPage('dashboard'), 100);
+                alert('✅ Registered successfully!');
+            } else {
+                alert('❌ Email & 6+ character password required');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('authButtons').style.display = 'flex';
+            document.getElementById('userMenu').style.display = 'none';
+            showPage('home');
+        }
+
+        function searchFlights() {
+            const destination = document.getElementById('searchTo').value.toLowerCase().trim();
+            if (destination.includes('paris')) {
+                showPage('flights');
+                setTimeout(loadFlights, 200);
+            } else {
+                alert(`🔍 Searching "${destination}"...\n💡 Try "Paris" for demo flights! 🗼✈️`);
+            }
+        }
+
+        function loadFlights() {
+            document.getElementById('flightsGrid').innerHTML = `
+                <div class="flight-card" onclick="selectFlight(1)">
+                    <img class="flight-img" src="https://images.unsplash.com/photo-1532325826411-232e649a8a47?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="IndiGo">
+                    <div class="flight-details">
+                        <div class="flight-time">14:30 → 04:15+1</div>
+                        <div class="flight-airline">IndiGo 6E-234</div>
+                        <p class="flight-route">Vijayawada (VGA) → Paris (CDG) | 12h 45m Non-Stop</p>
+                        <div class="flight-price">₹45,999</div>
+                    </div>
+                </div>
+                <div class="flight-card" onclick="selectFlight(2)">
+                    <img class="flight-img" src="https://images.unsplash.com/photo-1444080748397-f442aa95c9fd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Air India">
+                    <div class="flight-details">
+                        <div class="flight-time">22:45 → 12:30+1</div>
+                        <div class="flight-airline">Air India AI-365</div>
+                        <p class="flight-route">Vijayawada → Delhi → Paris | 15h 45m 1 Stop</p>
+                        <div class="flight-price">₹52,499</div>
+                    </div>
+                </div>
+                <div class="flight-card" onclick="selectFlight(3)">
+                    <img class="flight-img" src="https://images.unsplash.com/photo-1564419320461-687f8e7f3ffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Vistara">
+                    <div class="flight-details">
+                        <div class="flight-time">09:15 → 23:00</div>
+                        <div class="flight-airline">Vistara UK-987</div>
+                        <p class="flight-route">Vijayawada → Paris | 13h 45m Premium Economy</p>
+                        <div class="flight-price">₹58,999</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectFlight(flightId) {
+            const flights = [
+                { name: 'IndiGo 6E-234', price: '₹45,999', total: '₹2,16,992' },
+                { name: 'Air India AI-365', price: '₹52,499', total: '₹2,23,492' },
+                { name: 'Vistara UK-987', price: '₹58,999', total: '₹2,29,992' }
+            ];
+            selectedFlight = flights[flightId - 1];
+            document.getElementById('flightTitle').textContent = `${selectedFlight.name} → Paris Complete Package`;
+            document.getElementById('flightCost').textContent = selectedFlight.price;
+            document.getElementById('totalPrice').textContent = selectedFlight.total;
+            showPage('flightDetails');
+        }
+
+        // NEW: BEAUTIFUL BOOKING SUCCESS MODAL
+        function confirmBooking() {
+            if (!currentUser) {
+                alert('❌ Please login first!');
+                return;
+            }
+
+            // Fill success modal with booking details
+            document.getElementById('bookingEmail').textContent = currentUser.email;
+            document.getElementById('bookingFlight').textContent = selectedFlight.name;
+            document.getElementById('bookingTotal').textContent = selectedFlight.total;
+
+            // Show success modal
+            const successModal = document.getElementById('successModal');
+            const successContent = document.querySelector('.success-content');
+            
+            successModal.classList.remove('hidden');
+            setTimeout(() => successContent.classList.add('show'), 10);
+        }
+
+        function closeSuccessModal() {
+            const successModal = document.getElementById('successModal');
+            const successContent = document.querySelector('.success-content');
+            
+            successContent.classList.remove('show');
+            setTimeout(() => {
+                successModal.classList.add('hidden');
+                showPage('dashboard'); // Return to dashboard
+            }, 300);
+        }
+
+        window.onclick = (e) => {
+            if (e.target.classList.contains('modal')) closeModal();
+            if (e.target.classList.contains('success-modal')) closeSuccessModal();
+        };
+    </script>
+</body>
+</html>
